@@ -28,14 +28,16 @@ namespace DDCMonitorManager
             Window window = Window.GetWindow(this);
             var wih = new WindowInteropHelper(window);
             IntPtr hWnd = wih.Handle;
-            brightnessControl = new BrightnessControl(hWnd);
+            brightnessControl = new BrightnessControl();
             InitializeSliders(brightnessControl.GetMonitors());
         }
 
         private void InitializeSliders(uint count)
         {
+            //Console.WriteLine(count);
             for (int i = 0; i<count; ++i)
             {
+                
                 AddSlider(i);
             }
         }
@@ -95,7 +97,11 @@ namespace DDCMonitorManager
 
         private void AboutMenuItem_Click(object sender, RoutedEventArgs e)
         {
-
+            Window window = Window.GetWindow(this);
+            var wih = new WindowInteropHelper(window);
+            IntPtr hWnd = wih.Handle;
+            //brightnessControl.hWnd = hWnd;
+            brightnessControl.SetupMonitors();
         }
     }
 }

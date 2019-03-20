@@ -44,3 +44,7 @@ Temporary Items
 *.suo
 DDCMonitorManager/bin/*
 DDCMonitorManager/obj/*
+.vs/DDCMonitorManager/v15/Server/sqlite3/db.lock
+.vs/DDCMonitorManager/v15/Server/sqlite3/storage.ide
+.vs/DDCMonitorManager/v15/Server/sqlite3/storage.ide-shm
+.vs/DDCMonitorManager/v15/Server/sqlite3/storage.ide-wal

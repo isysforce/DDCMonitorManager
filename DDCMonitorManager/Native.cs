@@ -49,6 +49,13 @@ namespace DDCMonitorManager
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool GetMonitorBrightness(
             IntPtr hMonitor, ref short pdwMinimumBrightness, ref short pdwCurrentBrightness, ref short pdwMaximumBrightness);
+
+
+
+        public delegate bool MonitorEnumDelegate(IntPtr hMonitor, IntPtr hDC, ref NativeStructures.Rect pRect, int dwData);
+
+        [DllImport("user32.dll")]
+        public static extern bool EnumDisplayMonitors(IntPtr hDC, IntPtr lpRect, MonitorEnumDelegate callback, int dwData);
     }
     public class NativeConstants
     {
@@ -61,6 +68,16 @@ namespace DDCMonitorManager
 
     public class NativeStructures
     {
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct Rect
+        {
+            public int left;
+            public int top;
+            public int right;
+            public int bottom;
+        }
+
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
         public struct PHYSICAL_MONITOR
         {

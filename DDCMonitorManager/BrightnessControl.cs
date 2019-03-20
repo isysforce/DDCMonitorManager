@@ -13,48 +13,90 @@ namespace DDCMonitorManager
     class BrightnessControl
     {
 
-        private IntPtr hWnd;
-        private NativeStructures.PHYSICAL_MONITOR[] pPhysicalMonitorArray;
-        private uint pdwNumberOfPhysicalMonitors;
+        //public IntPtr hWnd;
+        //private NativeStructures.PHYSICAL_MONITOR[] pPhysicalMonitorArray;
+        //private uint pdwNumberOfPhysicalMonitors;
 
-        public BrightnessControl(IntPtr hWnd)
+        public static List<IntPtr> monitors = new List<IntPtr>();
+        //private static List<NativeStructures.PHYSICAL_MONITOR[]> monitors_physical = new List<NativeStructures.PHYSICAL_MONITOR[]>();
+
+        public BrightnessControl()
         {
-            this.hWnd = hWnd;
+            //this.hWnd = hWnd;
             SetupMonitors();
         }
 
-        private void SetupMonitors()
-        {
-            IntPtr hMonitor = NativeCalls.MonitorFromWindow(hWnd, NativeConstants.MONITOR_DEFAULTTOPRIMARY);
-            int lastWin32Error = Marshal.GetLastWin32Error();
+        public static uint monCount = 0;
 
+        public void SetupMonitors()
+        {
+
+            if (NativeCalls.EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero, Callb, 0))
+                Console.WriteLine("You have {0} monitors", monCount);
+            else
+                Console.WriteLine("An error occured while enumerating monitors");
+
+
+            //IntPtr hMonitor = NativeCalls.MonitorFromWindow(hWnd, NativeConstants.MONITOR_DEFAULTTOPRIMARY);
+            //int lastWin32Error;
+            //uint pdwNumberOfPhysicalMonitors = 0;
+
+            //foreach (IntPtr hMonitor in monitors)
+            //{
+            //    bool numberOfPhysicalMonitorsFromHmonitor = NativeCalls.GetNumberOfPhysicalMonitorsFromHMONITOR(hMonitor, ref pdwNumberOfPhysicalMonitors);
+            //    lastWin32Error = Marshal.GetLastWin32Error();
+
+            //    var pPhysicalMonitorArray = new NativeStructures.PHYSICAL_MONITOR[pdwNumberOfPhysicalMonitors];
+            //    bool physicalMonitorsFromHmonitor = NativeCalls.GetPhysicalMonitorsFromHMONITOR(hMonitor, pdwNumberOfPhysicalMonitors, pPhysicalMonitorArray);
+            //    lastWin32Error = Marshal.GetLastWin32Error();
+
+            //    monitors_physical.Add(pPhysicalMonitorArray);
+
+            //    Console.WriteLine($"Handle: 0x{hMonitor:X}, Num: {pdwNumberOfPhysicalMonitors}, Physical: {pPhysicalMonitorArray[0].hPhysicalMonitor}");
+            //}
+
+            
+        }
+
+        private static bool Callb(IntPtr hMonitor, IntPtr hDC, ref NativeStructures.Rect prect, int d)
+        {
+            //monitors.Add(hMonitor);
+            int lastWin32Error;
+            uint pdwNumberOfPhysicalMonitors = 0;
             bool numberOfPhysicalMonitorsFromHmonitor = NativeCalls.GetNumberOfPhysicalMonitorsFromHMONITOR(hMonitor, ref pdwNumberOfPhysicalMonitors);
             lastWin32Error = Marshal.GetLastWin32Error();
 
-            pPhysicalMonitorArray = new NativeStructures.PHYSICAL_MONITOR[pdwNumberOfPhysicalMonitors];
+            var pPhysicalMonitorArray = new NativeStructures.PHYSICAL_MONITOR[pdwNumberOfPhysicalMonitors];
             bool physicalMonitorsFromHmonitor = NativeCalls.GetPhysicalMonitorsFromHMONITOR(hMonitor, pdwNumberOfPhysicalMonitors, pPhysicalMonitorArray);
             lastWin32Error = Marshal.GetLastWin32Error();
+
+            monitors.Add(pPhysicalMonitorArray[0].hPhysicalMonitor);
+
+            Console.WriteLine($"Handle: 0x{hMonitor:X}, Num: {pdwNumberOfPhysicalMonitors}, Physical: {pPhysicalMonitorArray[0].hPhysicalMonitor}");
+
+            //GetMonitorCapabilities((int)monCount);
+            return ++monCount > 0;
         }
 
-        private void GetMonitorCapabilities(int monitorNumber)
+        private static void GetMonitorCapabilities(int monitorNumber)
         {
             uint pdwMonitorCapabilities = 0u;
             uint pdwSupportedColorTemperatures = 0u;
-            var monitorCapabilities = NativeCalls.GetMonitorCapabilities(pPhysicalMonitorArray[monitorNumber].hPhysicalMonitor, ref pdwMonitorCapabilities, ref pdwSupportedColorTemperatures);
+            var monitorCapabilities = NativeCalls.GetMonitorCapabilities(monitors[monitorNumber], ref pdwMonitorCapabilities, ref pdwSupportedColorTemperatures);
             Debug.WriteLine(pdwMonitorCapabilities);
             Debug.WriteLine(pdwSupportedColorTemperatures);
             int lastWin32Error = Marshal.GetLastWin32Error();
             NativeStructures.MC_DISPLAY_TECHNOLOGY_TYPE type = NativeStructures.MC_DISPLAY_TECHNOLOGY_TYPE.MC_SHADOW_MASK_CATHODE_RAY_TUBE;
-            var monitorTechnologyType = NativeCalls.GetMonitorTechnologyType(pPhysicalMonitorArray[monitorNumber].hPhysicalMonitor, ref type);
+            var monitorTechnologyType = NativeCalls.GetMonitorTechnologyType(monitors[monitorNumber], ref type);
             Debug.WriteLine(type);
             lastWin32Error = Marshal.GetLastWin32Error();
         }
 
-        public bool SetBrightness(short brightness,int monitorNumber)
+        public bool SetBrightness(short brightness, int monitorNumber)
         {
-            var brightnessWasSet = NativeCalls.SetMonitorBrightness(pPhysicalMonitorArray[monitorNumber].hPhysicalMonitor, (short)brightness);
-            if (brightnessWasSet)
-                Debug.WriteLine("Brightness set to " + (short)brightness);
+            var brightnessWasSet = NativeCalls.SetMonitorBrightness(monitors[monitorNumber], (short)brightness);
+            //if (brightnessWasSet)
+            //    Debug.WriteLine("Brightness set to " + (short)brightness);
             int lastWin32Error = Marshal.GetLastWin32Error();
             return brightnessWasSet;
         }
@@ -62,12 +104,12 @@ namespace DDCMonitorManager
         public BrightnessInfo GetBrightnessCapabilities(int monitorNumber)
         {
             short current = -1, minimum = -1, maximum = -1;
-            bool getBrightness = NativeCalls.GetMonitorBrightness(pPhysicalMonitorArray[monitorNumber].hPhysicalMonitor,ref minimum,ref current,ref maximum);
+            bool getBrightness = NativeCalls.GetMonitorBrightness(monitors[monitorNumber], ref minimum,ref current,ref maximum);
             int lastWin32Error = Marshal.GetLastWin32Error();
             return new BrightnessInfo { minimum = minimum, maximum = maximum, current = current};
         }
 
-        public void DestroyMonitors()
+        public void DestroyMonitors(uint pdwNumberOfPhysicalMonitors, NativeStructures.PHYSICAL_MONITOR[] pPhysicalMonitorArray)
         {
             var destroyPhysicalMonitors = NativeCalls.DestroyPhysicalMonitors(pdwNumberOfPhysicalMonitors, pPhysicalMonitorArray);
             int lastWin32Error = Marshal.GetLastWin32Error();
@@ -75,7 +117,7 @@ namespace DDCMonitorManager
 
         public uint GetMonitors()
         {
-            return pdwNumberOfPhysicalMonitors;
+            return monCount;
         }
     }
 }
