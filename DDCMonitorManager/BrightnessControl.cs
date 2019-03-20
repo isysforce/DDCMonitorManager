@@ -13,16 +13,11 @@ namespace DDCMonitorManager
     class BrightnessControl
     {
 
-        //public IntPtr hWnd;
-        //private NativeStructures.PHYSICAL_MONITOR[] pPhysicalMonitorArray;
-        //private uint pdwNumberOfPhysicalMonitors;
-
         public static List<IntPtr> monitors = new List<IntPtr>();
-        //private static List<NativeStructures.PHYSICAL_MONITOR[]> monitors_physical = new List<NativeStructures.PHYSICAL_MONITOR[]>();
 
         public BrightnessControl()
         {
-            //this.hWnd = hWnd;
+
             SetupMonitors();
         }
 
@@ -30,32 +25,11 @@ namespace DDCMonitorManager
 
         public void SetupMonitors()
         {
-
+            monitors.Clear();
             if (NativeCalls.EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero, Callb, 0))
                 Console.WriteLine("You have {0} monitors", monCount);
             else
                 Console.WriteLine("An error occured while enumerating monitors");
-
-
-            //IntPtr hMonitor = NativeCalls.MonitorFromWindow(hWnd, NativeConstants.MONITOR_DEFAULTTOPRIMARY);
-            //int lastWin32Error;
-            //uint pdwNumberOfPhysicalMonitors = 0;
-
-            //foreach (IntPtr hMonitor in monitors)
-            //{
-            //    bool numberOfPhysicalMonitorsFromHmonitor = NativeCalls.GetNumberOfPhysicalMonitorsFromHMONITOR(hMonitor, ref pdwNumberOfPhysicalMonitors);
-            //    lastWin32Error = Marshal.GetLastWin32Error();
-
-            //    var pPhysicalMonitorArray = new NativeStructures.PHYSICAL_MONITOR[pdwNumberOfPhysicalMonitors];
-            //    bool physicalMonitorsFromHmonitor = NativeCalls.GetPhysicalMonitorsFromHMONITOR(hMonitor, pdwNumberOfPhysicalMonitors, pPhysicalMonitorArray);
-            //    lastWin32Error = Marshal.GetLastWin32Error();
-
-            //    monitors_physical.Add(pPhysicalMonitorArray);
-
-            //    Console.WriteLine($"Handle: 0x{hMonitor:X}, Num: {pdwNumberOfPhysicalMonitors}, Physical: {pPhysicalMonitorArray[0].hPhysicalMonitor}");
-            //}
-
-            
         }
 
         private static bool Callb(IntPtr hMonitor, IntPtr hDC, ref NativeStructures.Rect prect, int d)
